@@ -2,6 +2,8 @@
 //
 //  Arduino Mega (5V) as a bridge between a Raspberry Pi and 2 Hoverboards
 //  code based on "hoverserial.ino" from https://github.com/EmanuelFeru/hoverboard-firmware-hack-FOC
+//  
+//  https://forum.arduino.cc/index.php?topic=288234.0
 //
 // *******************************************************************
 // INFO:
