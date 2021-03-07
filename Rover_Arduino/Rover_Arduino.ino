@@ -1,13 +1,12 @@
 // *******************************************************************
-//  Arduino Nano 5V example code
-//  for   https://github.com/EmanuelFeru/hoverboard-firmware-hack-FOC
 //
-//  Copyright (C) 2019-2020 Emanuel FERU <aerdronix@gmail.com>
+//  Arduino Mega (5V) as a bridge between a Raspberry Pi and 2 Hoverboards
+//  code based on "hoverserial.ino" from https://github.com/EmanuelFeru/hoverboard-firmware-hack-FOC
 //
 // *******************************************************************
 // INFO:
-// • This sketch uses the the Serial Software interface to communicate and send commands to the hoverboard
-// • The built-in (HW) Serial interface is used for debugging and visualization. In case the debugging is not needed,
+// • This sketch uses the the (HW) Serial Interface 1 to communicate and send commands to the hoverboard
+// • The built-in (HW) Serial interface 0 is used for debugging and visualization. In case the debugging is not needed,
 //   it is recommended to use the built-in Serial interface for full speed perfomace.
 // • The data packaging includes a Start Frame, checksum, and re-syncronization capability for reliable communication
 // 
@@ -16,10 +15,6 @@
 //   #define CONTROL_SERIAL_USART3
 //   #define FEEDBACK_SERIAL_USART3
 //   // #define DEBUG_SERIAL_USART3
-// • Option 2: Serial on Left Sensor cable (long wired cable) - use only with 3.3V devices! The USART2 pins are not 5V tolerant!
-//   #define CONTROL_SERIAL_USART2
-//   #define FEEDBACK_SERIAL_USART2
-//   // #define DEBUG_SERIAL_USART2
 // *******************************************************************
 
 // ########################## DEFINES ##########################
@@ -29,9 +24,6 @@
 #define TIME_SEND           100         // [ms] Sending time interval
 #define SPEED_MAX_TEST      300         // [-] Maximum speed for testing
 // #define DEBUG_RX                        // [-] Debug received data. Prints all bytes to serial (comment-out to disable)
-
-#include <SoftwareSerial.h>
-SoftwareSerial HoverSerial(2,3);        // RX, TX
 
 // Global variables
 uint8_t idx = 0;                        // Index for new data pointer
@@ -68,7 +60,7 @@ void setup()
   Serial.begin(SERIAL_BAUD);
   Serial.println("Hoverboard Serial v1.0");
 
-  HoverSerial.begin(HOVER_SERIAL_BAUD);
+  Serial1.begin(HOVER_SERIAL_BAUD);
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
@@ -82,15 +74,15 @@ void Send(int16_t uSteer, int16_t uSpeed)
   Command.checksum = (uint16_t)(Command.start ^ Command.steer ^ Command.speed);
 
   // Write to Serial
-  HoverSerial.write((uint8_t *) &Command, sizeof(Command)); 
+  Serial1.write((uint8_t *) &Command, sizeof(Command)); 
 }
 
 // ########################## RECEIVE ##########################
 void Receive()
 {
     // Check for new data availability in the Serial buffer
-    if (HoverSerial.available()) {
-        incomingByte    = HoverSerial.read();                                   // Read the incoming byte
+    if (Serial1.available()) {
+        incomingByte    = Serial1.read();                                   // Read the incoming byte
         bufStartFrame = ((uint16_t)(incomingByte) << 8) | incomingBytePrev;       // Construct the start frame
     }
     else {
@@ -169,12 +161,4 @@ void loop(void)
   digitalWrite(LED_BUILTIN, (timeNow%2000)<1000);
 }
 
-// ########################## END ##########################void setup() {
-  // put your setup code here, to run once:
-
-}
-
-void loop() {
-  // put your main code here, to run repeatedly:
-
-}
+// ########################## END ##########################
