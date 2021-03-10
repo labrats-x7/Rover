@@ -1,9 +1,10 @@
 // *******************************************************************
 //
-//  Arduino Mega (5V) as a bridge between a Raspberry Pi and 2 Hoverboards
+//  Arduino Mega (5V) as a bridge between a Raspberry Pi and 2 Hoverboards with Emanuels hoverboard firmware hack
+//
 //  code based on "hoverserial.ino" from https://github.com/EmanuelFeru/hoverboard-firmware-hack-FOC
 //  
-//  https://forum.arduino.cc/index.php?topic=288234.0
+//  examples of non blocking serial communication for arduino: https://forum.arduino.cc/index.php?topic=288234.0
 //
 // *******************************************************************
 // INFO:
@@ -22,17 +23,23 @@
 // ########################## DEFINES ##########################
 #define HOVER_SERIAL_BAUD   115200      // [-] Baud rate for HoverSerial (used to communicate with the hoverboard)
 #define SERIAL_BAUD         115200      // [-] Baud rate for built-in Serial (used for the Serial Monitor)
-#define START_FRAME         0xABCD       // [-] Start frme definition for reliable serial communication
+#define START_FRAME         0xABCD      // [-] Start frme definition for reliable serial communication
 #define TIME_SEND           100         // [ms] Sending time interval
 #define SPEED_MAX_TEST      300         // [-] Maximum speed for testing
-// #define DEBUG_RX                        // [-] Debug received data. Prints all bytes to serial (comment-out to disable)
+// #define DEBUG_RX                     // [-] Debug received data. Prints all bytes to serial (comment-out to disable)
 
 // Global variables
+unsigned long iTimeSend = 0;
 uint8_t idx = 0;                        // Index for new data pointer
 uint16_t bufStartFrame;                 // Buffer Start Frame
 byte *p;                                // Pointer declaration for the new received data
-byte incomingByte;
-byte incomingBytePrev;
+byte incomingByte1;
+byte incomingBytePrev1;
+int STEER;
+int SPEED;
+const byte numChars = 32;
+byte receivedChars[numChars];
+boolean newData = false;
 
 typedef struct{
    uint16_t start;
@@ -63,10 +70,65 @@ void setup()
   Serial.println("Hoverboard Serial v1.0");
 
   Serial1.begin(HOVER_SERIAL_BAUD);
+  Serial2.begin(HOVER_SERIAL_BAUD);
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
-// ########################## SEND ##########################
+// ########################## LOOP ##########################
+
+void loop(void) { 
+  unsigned long timeNow = millis();
+
+  recvPi();           // Check for new received data from pi
+
+  Receive1();         // Check for new received data from Hoverboard
+  
+
+  // Send commands
+  if (iTimeSend > timeNow) return;
+  iTimeSend = timeNow + TIME_SEND;
+  Send(STEER, SPEED);
+
+  // Blink the LED
+  digitalWrite(LED_BUILTIN, (timeNow%2000)<1000);
+}
+
+// ########################## RECEIVE from Pi ##########################
+
+void recvPi() {
+    static boolean recvInProgress = false;
+    static byte ndx = 0;
+    char startMarker = '<';
+    char endMarker = '>';
+    byte rc;
+ 
+ // if (Serial.available() > 0) {
+    while (Serial.available() > 0 && newData == false) {
+        rc = Serial.read();
+
+        if (recvInProgress == true) {
+            if (rc != endMarker) {
+                receivedChars[ndx] = rc;
+                ndx++;
+                if (ndx >= numChars) {
+                    ndx = numChars - 1;
+                }
+            }
+            else {
+                receivedChars[ndx] = '\0'; // terminate the string
+                recvInProgress = false;
+                ndx = 0;
+                newData = true;
+            }
+        }
+
+        else if (rc == startMarker) {
+            recvInProgress = true;
+        }
+    }
+}
+
+// ########################## SEND to Hoverboards ##########################
 void Send(int16_t uSteer, int16_t uSpeed)
 {
   // Create command
@@ -76,16 +138,17 @@ void Send(int16_t uSteer, int16_t uSpeed)
   Command.checksum = (uint16_t)(Command.start ^ Command.steer ^ Command.speed);
 
   // Write to Serial
-  Serial1.write((uint8_t *) &Command, sizeof(Command)); 
+  Serial1.write((uint8_t *) &Command, sizeof(Command));
+  Serial2.write((uint8_t *) &Command, sizeof(Command));
 }
 
-// ########################## RECEIVE ##########################
-void Receive()
+// ########################## RECEIVE from Hoverboard 1 ##########################
+void Receive1()
 {
     // Check for new data availability in the Serial buffer
     if (Serial1.available()) {
-        incomingByte    = Serial1.read();                                   // Read the incoming byte
-        bufStartFrame = ((uint16_t)(incomingByte) << 8) | incomingBytePrev;       // Construct the start frame
+        incomingByte1    = Serial1.read();                                          // Read the incoming byte
+        bufStartFrame = ((uint16_t)(incomingByte1) << 8) | incomingBytePrev1;       // Construct the start frame
     }
     else {
         return;
@@ -93,18 +156,18 @@ void Receive()
 
   // If DEBUG_RX is defined print all incoming bytes
   #ifdef DEBUG_RX
-        Serial.print(incomingByte);
+        Serial.print(incomingByte1);
         return;
     #endif
 
     // Copy received data
     if (bufStartFrame == START_FRAME) {                     // Initialize if new data is detected
         p       = (byte *)&NewFeedback;
-        *p++    = incomingBytePrev;
-        *p++    = incomingByte;
+        *p++    = incomingBytePrev1;
+        *p++    = incomingByte1;
         idx     = 2;  
     } else if (idx >= 2 && idx < sizeof(SerialFeedback)) {  // Save the new received data
-        *p++    = incomingByte; 
+        *p++    = incomingByte1; 
         idx++;
     } 
     
@@ -134,33 +197,8 @@ void Receive()
     }
 
     // Update previous states
-    incomingBytePrev = incomingByte;
+    incomingBytePrev1 = incomingByte1;
 }
 
-// ########################## LOOP ##########################
-
-unsigned long iTimeSend = 0;
-int iTestMax = SPEED_MAX_TEST;
-int iTest = 0;
-
-void loop(void)
-{ 
-  unsigned long timeNow = millis();
-
-  // Check for new received data
-  Receive();
-
-  // Send commands
-  if (iTimeSend > timeNow) return;
-  iTimeSend = timeNow + TIME_SEND;
-  Send(0, SPEED_MAX_TEST - 2*abs(iTest));
-
-  // Calculate test command signal
-  iTest += 10;
-  if (iTest > iTestMax) iTest = -iTestMax;
-
-  // Blink the LED
-  digitalWrite(LED_BUILTIN, (timeNow%2000)<1000);
-}
 
 // ########################## END ##########################
