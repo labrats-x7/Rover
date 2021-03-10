@@ -6,6 +6,8 @@
 //  
 //  examples of non blocking serial communication for arduino: https://forum.arduino.cc/index.php?topic=288234.0
 //
+//  more undocumented options to send to Hoverboard over USART: https://github.com/EmanuelFeru/hoverboard-firmware-hack-FOC/issues/143
+//
 // *******************************************************************
 // INFO:
 // • This sketch uses the the (HW) Serial Interface 1 to communicate and send commands to the hoverboard
