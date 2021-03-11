@@ -1,5 +1,5 @@
 ---
 ## Data Connections
  
-![Data Connections](/Data Connections.png)
+![data_connections](/docs/pictures/data_connections.png)
 ---
