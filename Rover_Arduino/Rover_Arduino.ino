@@ -82,8 +82,8 @@ void loop(void) {
   unsigned long timeNow = millis();
 
   recvPi();           // Check for new received data from pi
-
-  Receive1();         // Check for new received data from Hoverboard
+  parseData();       // Parse data from pi to global variables STEER and SPEED 
+  receive1();         // Check for new received data from Hoverboard
   
 
   // Send commands
@@ -130,6 +130,17 @@ void recvPi() {
     }
 }
 
+// ########################## PARSE Data from Pi ##########################
+void parseData() {      // split the data into its parts
+  char * strtokIndx; // this is used by strtok() as an index
+  
+  strtokIndx = strtok(receivedChars,",");      // get the first part - STEER
+  STEER = atoi(strtokIndx); // convert this part to an integer
+  
+  strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
+  SPEED = atoi(strtokIndx);     // convert this part to an integer
+}
+
 // ########################## SEND to Hoverboards ##########################
 void Send(int16_t uSteer, int16_t uSpeed)
 {
@@ -145,7 +156,7 @@ void Send(int16_t uSteer, int16_t uSpeed)
 }
 
 // ########################## RECEIVE from Hoverboard 1 ##########################
-void Receive1()
+void receive1()
 {
     // Check for new data availability in the Serial buffer
     if (Serial1.available()) {
