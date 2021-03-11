@@ -1,3 +1,8 @@
+##
+Arduino Mega code for communicating with 2 hoverboards from a raspberry pi 
+
+see hoverboard-firmware-hack-FOC repo for hoverboard-firmware
+
 ---
 ## Data Connections
  
