@@ -43,6 +43,7 @@ int16_t SPEED_FL;
 int16_t SPEED_FR;
 int16_t SPEED_RL;
 int16_t SPEED_RR;
+int16_t STEER_SERVO;
 const byte numChars = 32;
 byte receivedChars[numChars];
 boolean newData = false;
@@ -137,13 +138,22 @@ void recvPi() {
 
 // ########################## PARSE Data from Pi ##########################
 void parseData() {      // split the data into its parts
-  char * strtokIndx; // this is used by strtok() as an index
+    char * strtokIndx; // this is used by strtok() as an index
   
-  strtokIndx = strtok(receivedChars,",");      // get the first part - STEER
-  SPEED_FL = atoi(strtokIndx); // convert this part to an integer
+    strtokIndx = strtok(receivedChars,",");      // get the first part - STEER
+    SPEED_FL = atoi(strtokIndx); // convert this part to an integer
   
-  strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
-  SPEED_FR = atoi(strtokIndx);     // convert this part to an integer
+    strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
+    SPEED_FR = atoi(strtokIndx);     // convert this part to an integer
+
+    strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
+    SPEED_RR = atoi(strtokIndx);     // convert this part to an integer
+
+    strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
+    SPEED_RR = atoi(strtokIndx);     // convert this part to an integer
+
+    strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
+    STEER_SERVO = atoi(strtokIndx);     // convert this part to an integer    
 }
 
 // ########################## SEND to Front Hoverboard ##########################
