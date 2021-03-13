@@ -1,5 +1,5 @@
 ##
-Arduino Mega code for communicating with 2 hoverboards from a raspberry pi 
+Arduino Mega code for communicating with 2 hoverboards from a raspberry pi in Rover_Arduino
 
 see hoverboard-firmware-hack-FOC repo for hoverboard-firmware
 
