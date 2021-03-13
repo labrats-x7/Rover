@@ -13,6 +13,7 @@ see hoverboard-firmware-hack-FOC repo for hoverboard-firmware
 
 ## Mechanics
 Overview over the Rover geometry build from 40mm ITEM extrusions:
+
 Iso:
 ![mechanics_iso](/docs/pictures/mechanics_iso.png)
 Front:
