@@ -10,7 +10,7 @@
 //
 // *******************************************************************
 // INFO:
-// • This sketch uses the the (HW) Serial Interface 1 to communicate and send commands to the hoverboard
+// • This sketch uses the the (HW) Serial Interface 1 and 2 to communicate and send commands to the hoverboards
 // • The built-in (HW) Serial interface 0 is used for debugging and visualization. In case the debugging is not needed,
 //   it is recommended to use the built-in Serial interface for full speed perfomace.
 // • The data packaging includes a Start Frame, checksum, and re-syncronization capability for reliable communication
@@ -31,22 +31,14 @@
 // #define DEBUG_RX                     // [-] Debug received data. Prints all bytes to serial (comment-out to disable)
 
 // Global variables
-unsigned long iTimeSend = 0;
-uint8_t idx = 0;                        // Index for new data pointer
-uint16_t bufStartFrame;                 // Buffer Start Frame
-byte *p;                                // Pointer declaration for the new received data
-byte incomingByte1;
-byte incomingBytePrev1;
-byte incomingByte2;
-byte incomingBytePrev2;
 int16_t SPEED_FL;
 int16_t SPEED_FR;
 int16_t SPEED_RL;
 int16_t SPEED_RR;
 int16_t STEER_SERVO;
+int16_t HEARTBEAT;
 const byte numChars = 32;
 byte receivedChars[numChars];
-boolean newData = false;
 
 typedef struct{
    uint16_t start;
@@ -54,28 +46,24 @@ typedef struct{
    int16_t  speed;
    uint16_t checksum;
 } SerialCommand;
-SerialCommand Command;
 
 typedef struct{
-   uint16_t start;
-   int16_t  cmd1;
-   int16_t  cmd2;
-   int16_t  speedR_meas;
-   int16_t  speedL_meas;
-   int16_t  batVoltage;
-   int16_t  boardTemp;
-   uint16_t cmdLed;
-   uint16_t checksum;
+    uint16_t start;
+    int16_t  cmd1;
+    int16_t  cmd2;
+    int16_t  speedR_meas;
+    int16_t  speedL_meas;
+    int16_t  batVoltage;
+    int16_t  boardTemp;
+    uint16_t cmdLed;
+    uint16_t checksum;
 } SerialFeedback;
-SerialFeedback Feedback;
-SerialFeedback NewFeedback;
 
 // ########################## SETUP ##########################
 void setup() 
 {
   Serial.begin(SERIAL_BAUD);
   Serial.println("Rover Serial v0.1");
-
   Serial1.begin(HOVER_SERIAL_BAUD);
   Serial2.begin(HOVER_SERIAL_BAUD);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -84,26 +72,29 @@ void setup()
 // ########################## LOOP ##########################
 
 void loop(void) { 
-  unsigned long timeNow = millis();
+    unsigned long iTimeSend = 0;
+    unsigned long timeNow = millis();
 
-  recvPi();           // Check for new received data from pi
-  parseData();       // Parse data from pi to global SPEED_XX variables  
-  receive1();         // Check for new received data from Front Hoverboard
-  //receive2();         // Check for new received data from Rear Hoverboard
+    receivePi();          // Check for new received data from pi
+    parseData();       // Parse data from pi to global SPEED_XX variables  
+    ReceiveFront();        // Check for new received data from Front Hoverboard
+    //ReceiveRear();        // Check for new received data from Rear Hoverboard
 
-  // Send commands
-  if (iTimeSend > timeNow) return;
-  iTimeSend = timeNow + TIME_SEND;
-  Send1(SPEED_FL, SPEED_FR);
-  //Send2(SPEED_RL, SPEED_RR);
+    // Send commands to Hoverboards
+    if (iTimeSend > timeNow) return;
+    iTimeSend = timeNow + TIME_SEND;
+    SendFront(SPEED_FL, SPEED_FR);
+    //SendRear(SPEED_RL, SPEED_RR);
 
-  // Blink the LED
-  digitalWrite(LED_BUILTIN, (timeNow%2000)<1000);
+    // Blink the LED
+    digitalWrite(LED_BUILTIN, (timeNow%2000)<1000);
 }
 
 // ########################## RECEIVE from Pi ##########################
 
-void recvPi() {
+void receivePi() {
+    boolean newData = false;
+
     static boolean recvInProgress = false;
     static byte ndx = 0;
     char startMarker = '<';
@@ -153,62 +144,74 @@ void parseData() {      // split the data into its parts
     SPEED_RR = atoi(strtokIndx);     // convert this part to an integer
 
     strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
-    STEER_SERVO = atoi(strtokIndx);     // convert this part to an integer    
+    STEER_SERVO = atoi(strtokIndx);  // convert this part to an integer
+
+    strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
+    HEARTBEAT = atoi(strtokIndx);  // convert this part to an integer
 }
 
 // ########################## SEND to Front Hoverboard ##########################
-void Send1(int16_t SPEED_FL, int16_t SPEED_FR)
-{
-  // Create command
-  Command.start    = (uint16_t)START_FRAME;
-  Command.steer    = (int16_t)SPEED_FL;
-  Command.speed    = (int16_t)SPEED_FR;
-  Command.checksum = (uint16_t)(Command.start ^ Command.steer ^ Command.speed);
+void SendFront(int16_t SPEED_FL, int16_t SPEED_FR){
+    SerialCommand CommandFront;
 
-  // Write to Serial
-  Serial1.write((uint8_t *) &Command, sizeof(Command));
-  }
+    // Create command
+    CommandFront.start    = (uint16_t)START_FRAME;
+    CommandFront.steer    = (int16_t)SPEED_FL;
+    CommandFront.speed    = (int16_t)SPEED_FR;
+    CommandFront.checksum = (uint16_t)(CommandFront.start ^ CommandFront.steer ^ CommandFront.speed);
+
+    // Write to Serial
+    Serial1.write((uint8_t *) &CommandFront, sizeof(CommandFront));
+}
 
 // ########################## SEND to Rear Hoverboard ##########################
-void Send2(int16_t SPEED_RL, int16_t SPEED_RR)
-{
-  // Create command
-  Command.start    = (uint16_t)START_FRAME;
-  Command.steer    = (int16_t)SPEED_RL;
-  Command.speed    = (int16_t)SPEED_RR;
-  Command.checksum = (uint16_t)(Command.start ^ Command.steer ^ Command.speed);
+void SendRear(int16_t SPEED_RL, int16_t SPEED_RR){
+    SerialCommand CommandRear;
 
-  // Write to Serial
-  Serial2.write((uint8_t *) &Command, sizeof(Command));
-  }
+    // Create command
+    CommandRear.start    = (uint16_t)START_FRAME;
+    CommandRear.steer    = (int16_t)SPEED_RL;
+    CommandRear.speed    = (int16_t)SPEED_RR;
+    CommandRear.checksum = (uint16_t)(CommandRear.start ^ CommandRear.steer ^ CommandRear.speed);
 
+    // Write to Serial
+    Serial2.write((uint8_t *) &CommandRear, sizeof(CommandRear));
+}
 
-// ########################## RECEIVE from Front Hoverboard ##########################
-void receive1()
-{
+// ########################## RECEIVE debug from Front Hoverboard and send to Pi ##########################
+void ReceiveFront(){
+    byte *p;                // Pointer declaration for the new received data
+    byte incomingByte;
+    byte incomingBytePrev;
+    uint8_t idx = 0;                        // Index for new data pointer
+    uint16_t bufStartFrame;                 // Buffer Start Frame
+    SerialFeedback Feedback;
+    SerialFeedback NewFeedback;
+
     // Check for new data availability in the Serial buffer
     if (Serial1.available()) {
-        incomingByte1    = Serial1.read();                                          // Read the incoming byte
-        bufStartFrame = ((uint16_t)(incomingByte1) << 8) | incomingBytePrev1;       // Construct the start frame
+        incomingByte    = Serial1.read();                                          // Read the incoming byte
+        bufStartFrame = ((uint16_t)(incomingByte) << 8) | incomingBytePrev;       // Construct the start frame
     }
     else {
         return;
     }
 
-  // If DEBUG_RX is defined print all incoming bytes
-  #ifdef DEBUG_RX
-        Serial.print(incomingByte1);
+    // If DEBUG_RX is defined print all incoming bytes
+    #ifdef DEBUG_RX
+        Serial.print(incomingByte);
         return;
     #endif
 
     // Copy received data
     if (bufStartFrame == START_FRAME) {                     // Initialize if new data is detected
         p       = (byte *)&NewFeedback;
-        *p++    = incomingBytePrev1;
-        *p++    = incomingByte1;
+        *p++    = incomingBytePrev;
+        *p++    = incomingByte;
         idx     = 2;  
-    } else if (idx >= 2 && idx < sizeof(SerialFeedback)) {  // Save the new received data
-        *p++    = incomingByte1; 
+    }
+    else if (idx >= 2 && idx < sizeof(SerialFeedback)) {  // Save the new received data
+        *p++    = incomingByte; 
         idx++;
     } 
     
@@ -238,35 +241,42 @@ void receive1()
     }
 
     // Update previous states
-    incomingBytePrev1 = incomingByte1;
+    incomingBytePrev = incomingByte;
 }
 
-// ########################## RECEIVE from Rear Hoverboard ##########################
-void receive2()
-{
+// ########################## RECEIVE debug from Rear Hoverboard and send to Pi ##########################
+void ReceiveRear(){
+    byte *p;                // Pointer declaration for the new received data
+    byte incomingByte;
+    byte incomingBytePrev;
+    uint8_t idx = 0;                        // Index for new data pointer
+    uint16_t bufStartFrame;                 // Buffer Start Frame
+    SerialFeedback Feedback;
+    SerialFeedback NewFeedback;
+
     // Check for new data availability in the Serial buffer
     if (Serial2.available()) {
-        incomingByte2    = Serial2.read();                                          // Read the incoming byte
-        bufStartFrame = ((uint16_t)(incomingByte2) << 8) | incomingBytePrev2;       // Construct the start frame
+        incomingByte    = Serial2.read();                                          // Read the incoming byte
+        bufStartFrame = ((uint16_t)(incomingByte) << 8) | incomingBytePrev;       // Construct the start frame
     }
     else {
         return;
     }
 
-  // If DEBUG_RX is defined print all incoming bytes
-  #ifdef DEBUG_RX
-        Serial.print(incomingByte1);
+    // If DEBUG_RX is defined print all incoming bytes
+    #ifdef DEBUG_RX
+        Serial.print(incomingByte);
         return;
     #endif
 
     // Copy received data
     if (bufStartFrame == START_FRAME) {                     // Initialize if new data is detected
         p       = (byte *)&NewFeedback;
-        *p++    = incomingBytePrev2;
-        *p++    = incomingByte2;
-        idx     = 2;  
+        *p++    = incomingBytePrev;
+        *p++    = incomingByte;
+        idx    = 2;  
     } else if (idx >= 2 && idx < sizeof(SerialFeedback)) {  // Save the new received data
-        *p++    = incomingByte2; 
+        *p++    = incomingByte; 
         idx++;
     } 
     
@@ -289,14 +299,15 @@ void receive2()
             Serial.print(" R5: ");  Serial.print(Feedback.batVoltage);
             Serial.print(" R6: ");  Serial.print(Feedback.boardTemp);
             Serial.print(" R7: ");  Serial.println(Feedback.cmdLed);
-        } else {
+        }
+        else {
           Serial.println("R: Non-valid data skipped");
         }
         idx = 0;    // Reset the index (it prevents to enter in this if condition in the next cycle)
     }
 
     // Update previous states
-    incomingBytePrev2 = incomingByte2;
+    incomingBytePrev = incomingByte;
 }
 
 // ########################## END ##########################
