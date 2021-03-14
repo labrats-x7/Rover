@@ -15,14 +15,14 @@ from pySerialTransfer import pySerialTransfer as txfer
 
 StartMarker = "<"
 EndMarker = ">"
-SPEED_FL = 0
-SPEED_FR = 0
-SPEED_RL = 0
-SPEED_RR = 0
+SpeedFL = 0
+SpeedFR = 0
+SpeedRL = 0
+SpeedRR = 0
+Heartbeat = 0
 
-def DataArduino(StartMarker,SPEED_FL,SPEED_FR,SPEED_RL,SPEED_RR,HEARTBEAT,EndMarker):
-    
-    return struct.pack(StartMarker,SPEED_FL,SPEED_FR,SPEED_RL,SPEED_RR,HEARTBEAT,EndMarker)
+def DataArduino(StartMarker,SpeedFL,SpeedFR,SpeedRL,SpeedRR,Heartbeat,EndMarker):
+    return struct.pack(StartMarker,SpeedFL,SpeedFR,SpeedRL,SpeedRR,Heartbeat,EndMarker)
 	
 
 if __name__ == '__main__':
@@ -32,4 +32,4 @@ if __name__ == '__main__':
 
     while True:	
         DataArduino()
-		link.write(DataArduino)
+        link.write(DataArduino)
