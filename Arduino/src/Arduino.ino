@@ -76,11 +76,12 @@ void setup()
 void loop(void) { 
     static unsigned long iTimeSend = 0;
     unsigned long timeNow = millis();
+    static long on = 0;
 
     receivePi();          // Check for new received data from pi
     parseData();       // Parse data from pi to global SPEED_XX variables  
-    ReceiveFront();        // Check for new received data from Front Hoverboard
-    ReceiveRear();        // Check for new received data from Rear Hoverboard
+    //ReceiveFront();        // Check for new received data from Front Hoverboard
+    //ReceiveRear();        // Check for new received data from Rear Hoverboard
 
     // Send commands to Hoverboards
     if (iTimeSend > timeNow) return;
@@ -89,7 +90,12 @@ void loop(void) {
     SendRear(SPEED_RL, SPEED_RR);
 
     // Blink the LED
-    digitalWrite(LED_BUILTIN, (timeNow%2000)<1000);
+   //digitalWrite(LED_BUILTIN, (timeNow%2000)<1000);
+   digitalWrite(LED_BUILTIN, on == 1);
+   on++;
+   if(on > 1){
+       on = 0;
+   }
 }
 
 // ########################## RECEIVE from Pi ##########################
@@ -139,6 +145,7 @@ void parseData() {      // split the data into its parts
     strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
     SPEED_FR = atoi(strtokIndx);     // convert this part to an integer
 
+    /*
     strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
     SPEED_RL = atoi(strtokIndx);     // convert this part to an integer
 
@@ -150,6 +157,7 @@ void parseData() {      // split the data into its parts
 
     strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
     HEARTBEAT = atoi(strtokIndx);  // convert this part to an integer
+    */
 }
 
 // ########################## SEND to Front Hoverboard ##########################
