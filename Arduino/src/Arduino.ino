@@ -28,7 +28,7 @@
 #define START_FRAME         0xABCD      // [-] Start frme definition for reliable serial communication
 #define TIME_SEND           100         // [ms] Sending time interval
 #define SPEED_MAX_TEST      300         // [-] Maximum speed for testing
-// #define DEBUG_RX                     // [-] Debug received data. Prints all bytes to serial (comment-out to disable)
+//#define DEBUG_RX                     // [-] Debug received data. Prints all bytes to serial (comment-out to disable)
 
 // Global variables
 int16_t SPEED_FL;
@@ -37,7 +37,7 @@ int16_t SPEED_RL;
 int16_t SPEED_RR;
 int16_t STEER_SERVO;
 int16_t HEARTBEAT;
-const byte numChars = 32;
+const byte numChars = 64;
 byte receivedChars[numChars];
 
 typedef struct{
@@ -59,6 +59,8 @@ typedef struct{
     uint16_t checksum;
 } SerialFeedback;
 
+boolean newData = false;
+
 // ########################## SETUP ##########################
 void setup() 
 {
@@ -72,19 +74,19 @@ void setup()
 // ########################## LOOP ##########################
 
 void loop(void) { 
-    unsigned long iTimeSend = 0;
+    static unsigned long iTimeSend = 0;
     unsigned long timeNow = millis();
 
     receivePi();          // Check for new received data from pi
     parseData();       // Parse data from pi to global SPEED_XX variables  
     ReceiveFront();        // Check for new received data from Front Hoverboard
-    //ReceiveRear();        // Check for new received data from Rear Hoverboard
+    ReceiveRear();        // Check for new received data from Rear Hoverboard
 
     // Send commands to Hoverboards
     if (iTimeSend > timeNow) return;
     iTimeSend = timeNow + TIME_SEND;
     SendFront(SPEED_FL, SPEED_FR);
-    //SendRear(SPEED_RL, SPEED_RR);
+    SendRear(SPEED_RL, SPEED_RR);
 
     // Blink the LED
     digitalWrite(LED_BUILTIN, (timeNow%2000)<1000);
@@ -93,8 +95,6 @@ void loop(void) {
 // ########################## RECEIVE from Pi ##########################
 
 void receivePi() {
-    boolean newData = false;
-
     static boolean recvInProgress = false;
     static byte ndx = 0;
     char startMarker = '<';
@@ -129,16 +129,18 @@ void receivePi() {
 
 // ########################## PARSE Data from Pi ##########################
 void parseData() {      // split the data into its parts
+    if(!newData)return;
+    newData = false;
     char * strtokIndx; // this is used by strtok() as an index
   
     strtokIndx = strtok(receivedChars,",");      // get the first part - STEER
     SPEED_FL = atoi(strtokIndx); // convert this part to an integer
-  
+
     strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
     SPEED_FR = atoi(strtokIndx);     // convert this part to an integer
 
     strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
-    SPEED_RR = atoi(strtokIndx);     // convert this part to an integer
+    SPEED_RL = atoi(strtokIndx);     // convert this part to an integer
 
     strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
     SPEED_RR = atoi(strtokIndx);     // convert this part to an integer
@@ -162,6 +164,7 @@ void SendFront(int16_t SPEED_FL, int16_t SPEED_FR){
 
     // Write to Serial
     Serial1.write((uint8_t *) &CommandFront, sizeof(CommandFront));
+    //Serial.write((uint8_t *) &CommandFront, sizeof(CommandFront));
 }
 
 // ########################## SEND to Rear Hoverboard ##########################
@@ -180,13 +183,13 @@ void SendRear(int16_t SPEED_RL, int16_t SPEED_RR){
 
 // ########################## RECEIVE debug from Front Hoverboard and send to Pi ##########################
 void ReceiveFront(){
-    byte *p;                // Pointer declaration for the new received data
-    byte incomingByte;
-    byte incomingBytePrev;
-    uint8_t idx = 0;                        // Index for new data pointer
-    uint16_t bufStartFrame;                 // Buffer Start Frame
-    SerialFeedback Feedback;
-    SerialFeedback NewFeedback;
+    static byte *p;                // Pointer declaration for the new received data
+    static byte incomingByte;
+    static byte incomingBytePrev;
+    static uint8_t idx = 0;                        // Index for new data pointer
+    static uint16_t bufStartFrame;                 // Buffer Start Frame
+    static SerialFeedback Feedback;
+    static SerialFeedback NewFeedback;
 
     // Check for new data availability in the Serial buffer
     if (Serial1.available()) {
@@ -246,13 +249,13 @@ void ReceiveFront(){
 
 // ########################## RECEIVE debug from Rear Hoverboard and send to Pi ##########################
 void ReceiveRear(){
-    byte *p;                // Pointer declaration for the new received data
-    byte incomingByte;
-    byte incomingBytePrev;
-    uint8_t idx = 0;                        // Index for new data pointer
-    uint16_t bufStartFrame;                 // Buffer Start Frame
-    SerialFeedback Feedback;
-    SerialFeedback NewFeedback;
+    static byte *p;                // Pointer declaration for the new received data
+    static byte incomingByte;
+    static byte incomingBytePrev;
+    static uint8_t idx = 0;                        // Index for new data pointer
+    static uint16_t bufStartFrame;                 // Buffer Start Frame
+    static SerialFeedback Feedback;
+    static SerialFeedback NewFeedback;
 
     // Check for new data availability in the Serial buffer
     if (Serial2.available()) {
