@@ -1,35 +1,16 @@
-#!/usr/bin/env python3
-
-###############################################
-#
-# Communication with Arduino Mega over Serial
-#
-#
-#
-###############################################
-
 import time
 import serial
-import struct
-from pySerialTransfer import pySerialTransfer as txfer
 
-StartMarker = "<"
-EndMarker = ">"
-SpeedFL = 0
-SpeedFR = 0
-SpeedRL = 0
-SpeedRR = 0
-Heartbeat = 0
+filename = "/var/www/html/.send_command"
 
-def DataArduino(StartMarker,SpeedFL,SpeedFR,SpeedRL,SpeedRR,Heartbeat,EndMarker):
-    return struct.pack(StartMarker,SpeedFL,SpeedFR,SpeedRL,SpeedRR,Heartbeat,EndMarker)
-	
+ser = serial.Serial('/dev/ttyUSB0', 115200)  # open serial port
+print(ser.name)         # check which port was really used
+while True:
+	with open(filename) as f:
+    		content = f.readlines()
 
-if __name__ == '__main__':
-    link = txfer.SerialTransfer('/dev/ttyUSB0', 115200)
-    link.open()
-    time.sleep(2) # wait for arduino to reset
-
-    while True:	
-        DataArduino()
-        link.write(DataArduino)
+	for line in content:
+		print(line)
+		ser.write(bytes(line,"ascii"))     # write a string
+		print(ser.read(ser.in_waiting).decode("ascii"))
+	time.sleep(0.1)
