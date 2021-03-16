@@ -10,10 +10,13 @@ see hoverboard-firmware-hack-FOC repo for used hoverboard-firmware
 ## ToDo:
 
 Hoverboards:
+
     - firmware brake enable
 
 Arduino:
+
     - nonce
+    - servo pwm output
     - safe speed mode
 
 
