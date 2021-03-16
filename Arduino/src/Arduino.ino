@@ -2,7 +2,7 @@
 //
 //  Arduino Mega (5V) as a bridge between a Raspberry Pi and 2 Hoverboards with Emanuels hoverboard firmware hack
 //
-//  code based on "hoverserial.ino" from https://github.com/EmanuelFeru/hoverboard-firmware-hack-FOC
+//  code based on "hoverSerial3.ino" from https://github.com/EmanuelFeru/hoverboard-firmware-hack-FOC
 //  
 //  examples of non blocking serial communication for arduino: https://forum.arduino.cc/index.php?topic=288234.0
 //
@@ -39,7 +39,7 @@ int16_t SPEED_RL;
 int16_t SPEED_RR;
 int16_t STEER_SERVO;
 int16_t HEARTBEAT;
-const byte numChars = 32;
+const byte numChars = 64;
 byte receivedChars[numChars];
 
 typedef struct{
@@ -68,8 +68,8 @@ boolean newData = false;
 // ########################## SETUP ##########################
 void setup() 
 {
-    Serial.begin(SERIAL_BAUD);
-    Serial.println("Rover Serial v0.1");
+    Serial3.begin(SERIAL_BAUD);
+    Serial3.println("Rover Serial v0.1");
     Serial1.begin(HOVER_SERIAL_BAUD);
     Serial2.begin(HOVER_SERIAL_BAUD);
     pinMode(LED_BUILTIN, OUTPUT);
@@ -130,10 +130,10 @@ void receivePi() {
     char endMarker = '>';
     byte rc;
  
- // if (Serial.available() > 0) {
-    if (Serial.available() > 0 && newData == false) {
+ // if (Serial3.available() > 0) {
+    if (Serial3.available() > 0 && newData == false) {
         
-        rc = Serial.read();
+        rc = Serial3.read();
         digitalWrite(3, HIGH);
         if (recvInProgress == true) {
             if (rc != endMarker) {
@@ -144,6 +144,7 @@ void receivePi() {
                 }
             }
             else {
+                Serial3.println(ndx);
                 receivedChars[ndx] = '\0'; // terminate the string
                 recvInProgress = false;
                 ndx = 0;
@@ -154,7 +155,7 @@ void receivePi() {
         else if (rc == startMarker) {
             recvInProgress = true;
         }
-        digitalWrite(3, LOW);
+        digitalWrite(3, LOW); 
     }
     
 }
@@ -183,7 +184,6 @@ void parseData() {      // split the data into its parts
 
     strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
     HEARTBEAT = atoi(strtokIndx);  // convert this part to an integer
-
 }
 
 // ########################## SEND to Front Hoverboard ##########################
@@ -198,7 +198,7 @@ void SendFront(int16_t SPEED_FL, int16_t SPEED_FR){
 
     // Write to Serial
     Serial1.write((uint8_t *) &CommandFront, sizeof(CommandFront));
-    //Serial.write((uint8_t *) &CommandFront, sizeof(CommandFront));
+    //Serial3.write((uint8_t *) &CommandFront, sizeof(CommandFront));
 }
 
 // ########################## SEND to Rear Hoverboard ##########################
@@ -224,6 +224,7 @@ void ReceiveFront(){
     static uint16_t bufStartFrame;                 // Buffer Start Frame
     static SerialFeedback Feedback;
     static SerialFeedback NewFeedback;
+
     // Check for new data availability in the Serial buffer
     if (Serial1.available()) {
         incomingByte    = Serial1.read();                                          // Read the incoming byte
@@ -235,7 +236,7 @@ void ReceiveFront(){
 
     // If DEBUG_RX is defined print all incoming bytes
     #ifdef DEBUG_RX
-        Serial.print(incomingByte);
+        Serial3.print(incomingByte);
         return;
     #endif
 
@@ -263,15 +264,15 @@ void ReceiveFront(){
             memcpy(&Feedback, &NewFeedback, sizeof(SerialFeedback));
 
             // Print data to built-in Serial
-            Serial.print("F1: ");   Serial.print(Feedback.cmd1);
-            Serial.print(" F2: ");  Serial.print(Feedback.cmd2);
-            Serial.print(" F3: ");  Serial.print(Feedback.speedR_meas);
-            Serial.print(" F4: ");  Serial.print(Feedback.speedL_meas);
-            Serial.print(" F5: ");  Serial.print(Feedback.batVoltage);
-            Serial.print(" F6: ");  Serial.print(Feedback.boardTemp);
-            Serial.print(" F7: ");  Serial.println(Feedback.cmdLed);
+            Serial3.print("F1: ");   Serial3.print(Feedback.cmd1);
+            Serial3.print(" F2: ");  Serial3.print(Feedback.cmd2);
+            Serial3.print(" F3: ");  Serial3.print(Feedback.speedR_meas);
+            Serial3.print(" F4: ");  Serial3.print(Feedback.speedL_meas);
+            Serial3.print(" F5: ");  Serial3.print(Feedback.batVoltage);
+            Serial3.print(" F6: ");  Serial3.print(Feedback.boardTemp);
+            Serial3.print(" F7: ");  Serial3.println(Feedback.cmdLed);
         } else {
-          Serial.println("F: Non-valid data skipped");
+          Serial3.println("F: Non-valid data skipped");
         }
         idx = 0;    // Reset the index (it prevents to enter in this if condition in the next cycle)
     }
@@ -289,7 +290,6 @@ void ReceiveRear(){
     static uint16_t bufStartFrame;                 // Buffer Start Frame
     static SerialFeedback Feedback;
     static SerialFeedback NewFeedback;
-
     // Check for new data availability in the Serial buffer
     if (Serial2.available()) {
         digitalWrite(6, HIGH);
@@ -303,7 +303,7 @@ void ReceiveRear(){
 
     // If DEBUG_RX is defined print all incoming bytes
     #ifdef DEBUG_RX
-        Serial.print(incomingByte);
+        Serial3.print(incomingByte);
         return;
     #endif
 
@@ -330,16 +330,16 @@ void ReceiveRear(){
             memcpy(&Feedback, &NewFeedback, sizeof(SerialFeedback));
 
             // Print data to built-in Serial
-            Serial.print("R1: ");   Serial.print(Feedback.cmd1);
-            Serial.print(" R2: ");  Serial.print(Feedback.cmd2);
-            Serial.print(" R3: ");  Serial.print(Feedback.speedR_meas);
-            Serial.print(" R4: ");  Serial.print(Feedback.speedL_meas);
-            Serial.print(" R5: ");  Serial.print(Feedback.batVoltage);
-            Serial.print(" R6: ");  Serial.print(Feedback.boardTemp);
-            Serial.print(" R7: ");  Serial.println(Feedback.cmdLed);
+            Serial3.print("R1: ");   Serial3.print(Feedback.cmd1);
+            Serial3.print(" R2: ");  Serial3.print(Feedback.cmd2);
+            Serial3.print(" R3: ");  Serial3.print(Feedback.speedR_meas);
+            Serial3.print(" R4: ");  Serial3.print(Feedback.speedL_meas);
+            Serial3.print(" R5: ");  Serial3.print(Feedback.batVoltage);
+            Serial3.print(" R6: ");  Serial3.print(Feedback.boardTemp);
+            Serial3.print(" R7: ");  Serial3.println(Feedback.cmdLed);
         }
         else {
-          Serial.println("R: Non-valid data skipped");
+          Serial3.println("R: Non-valid data skipped");
         }
         idx = 0;    // Reset the index (it prevents to enter in this if condition in the next cycle)
     }
