@@ -9,11 +9,25 @@ see hoverboard-firmware-hack-FOC repo for used hoverboard-firmware
 ---
 ## ToDo:
 
-Mechanics:
+Mechanical:
 
     - Order longer M12 Screw for front axle: (220mm and 260mm)
+    - cut spacer tube to correct length (TBD) 
     - Order longer 40mm extrusions for suspension (TBD)
+    - finish servo steering
+    - Build upper deck
+    - cut floor and Plexiglass walls
+    - camera and lidar placement
+    - shorten the 4 outer screws on the front axle to correct the tire track with
 
+Electrical:
+    
+    - Cables for front axle
+    - DC/DC converter 5V 12V... 
+    - terminal blocks for power distribution 
+    - LiFePo batteries
+    - Circuit diagram!
+    - WS2812 strip (in extrusion slot?) 
 
 Hoverboards:
 
@@ -24,7 +38,6 @@ Hoverboards:
 
 Arduino:
 
-    - nonce auf dem UC checken if nonce gesehen > x mal -> use failsafe alias <0,0,0,0,0,0>
     - servo pwm output
     - safe speed mode
     
