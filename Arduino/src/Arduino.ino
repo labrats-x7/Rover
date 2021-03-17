@@ -33,14 +33,18 @@
 //#define DEBUG_RX                     // [-] Debug received data. Prints all bytes to serial (comment-out to disable)
 
 // Global variables
-int16_t SPEED_FL;
-int16_t SPEED_FR;
-int16_t SPEED_RL;
-int16_t SPEED_RR;
-int16_t STEER_SERVO;
-int16_t HEARTBEAT;
+int16_t SPEED_FL=0;
+int16_t SPEED_FR=0;
+int16_t SPEED_RL=0;
+int16_t SPEED_RR=0;
+int16_t STEER_SERVO=0;
 const byte numChars = 64;
 byte receivedChars[numChars];
+int16_t NONCE = 0;
+int16_t NONCE_COUNT = 0;
+int16_t NONCE_TIMEOUT = 0;
+bool web_connected = false;
+bool pi_connected = false;
 
 typedef struct{
    uint16_t start;
@@ -68,48 +72,37 @@ boolean newData = false;
 // ########################## SETUP ##########################
 void setup() 
 {
+    Serial.begin(9600);
     Serial3.begin(SERIAL_BAUD);
     Serial3.println("Rover Serial v0.1");
+    Serial.println("Rover Serial v0.1");
     Serial1.begin(HOVER_SERIAL_BAUD);
     Serial2.begin(HOVER_SERIAL_BAUD);
     pinMode(LED_BUILTIN, OUTPUT);
-    //pins for speed measurements
-    pinMode(2, OUTPUT);
-    pinMode(3, OUTPUT);
-    pinMode(4, OUTPUT);
-    pinMode(5, OUTPUT);
-    pinMode(6, OUTPUT);
-    pinMode(7, OUTPUT);
 }
 
 // ########################## LOOP ##########################
 
 void loop(void) { 
+    static int16_t last_nonce = 0;
     static unsigned long iTimeSend = 0;
     unsigned long timeNow = millis();
     static long on = 0;
 
-    digitalWrite(2, HIGH);
+
     receivePi();          // Check for new received data from pi
-    digitalWrite(2, LOW);
-
-    digitalWrite(4, HIGH);
     parseData();       // Parse data from pi to global SPEED_XX variables  
-    digitalWrite(4, LOW);
 
-    digitalWrite(5, HIGH);
     ReceiveFront();        // Check for new received data from Front Hoverboard
     //ReceiveRear();        // Check for new received data from Rear Hoverboard
-    digitalWrite(5, LOW);
+  
 
     // Send commands to Hoverboards
     if (iTimeSend > timeNow) return;
     iTimeSend = timeNow + TIME_SEND;
 
-    digitalWrite(7, HIGH);
-    SendFront(SPEED_FL, SPEED_FR);
-    SendRear(SPEED_RL, SPEED_RR);
-    digitalWrite(7, LOW);
+ 
+
 
     // Blink the LED
    //digitalWrite(LED_BUILTIN, (timeNow%2000)<1000);
@@ -118,6 +111,28 @@ void loop(void) {
    if(on > 1){
        on = 0;
    }
+
+   //NONCE
+   if(last_nonce == NONCE){
+        NONCE_TIMEOUT++;
+    }
+    else{
+        last_nonce = NONCE;
+        NONCE_TIMEOUT = 0;
+    }
+    if(NONCE_TIMEOUT > 5){
+        //Pi oder Client offline
+        NONCE_TIMEOUT = 5; 
+        SPEED_FL=0;
+        SPEED_FR=0;
+        SPEED_RL=0;
+        SPEED_RR=0;
+        Serial.println("NONCE: something offline");
+    }
+
+    SendFront(SPEED_FL, SPEED_FR);
+    SendRear(SPEED_RL, SPEED_RR);
+
 }
 
 // ########################## RECEIVE from Pi ##########################
@@ -134,7 +149,6 @@ void receivePi() {
     if (Serial3.available() > 0 && newData == false) {
         
         rc = Serial3.read();
-        digitalWrite(3, HIGH);
         if (recvInProgress == true) {
             if (rc != endMarker) {
                 receivedChars[ndx] = rc;
@@ -144,20 +158,16 @@ void receivePi() {
                 }
             }
             else {
-                Serial3.println(ndx);
                 receivedChars[ndx] = '\0'; // terminate the string
                 recvInProgress = false;
                 ndx = 0;
                 newData = true;
             }
         }
-
         else if (rc == startMarker) {
             recvInProgress = true;
         }
-        digitalWrite(3, LOW); 
     }
-    
 }
 
 // ########################## PARSE Data from Pi ##########################
@@ -183,7 +193,20 @@ void parseData() {      // split the data into its parts
     STEER_SERVO = atoi(strtokIndx);  // convert this part to an integer
 
     strtokIndx = strtok(NULL, ","); // this continues where the previous call left off 
-    HEARTBEAT = atoi(strtokIndx);  // convert this part to an integer
+    int16_t received_nonce = atoi(strtokIndx);  // convert this part to an integer
+
+    if(received_nonce == NONCE){
+        NONCE_COUNT++;
+    }
+    else{
+        NONCE = received_nonce;
+        NONCE_COUNT = 0;
+    }
+    if(NONCE_COUNT > 5){
+        // Web-Client offline
+        NONCE_COUNT = 5;
+        Serial.println("NONCE: Web offline");
+    }
 }
 
 // ########################## SEND to Front Hoverboard ##########################
@@ -292,10 +315,8 @@ void ReceiveRear(){
     static SerialFeedback NewFeedback;
     // Check for new data availability in the Serial buffer
     if (Serial2.available()) {
-        digitalWrite(6, HIGH);
         incomingByte    = Serial2.read();                                          // Read the incoming byte
         bufStartFrame = ((uint16_t)(incomingByte) << 8) | incomingBytePrev;       // Construct the start frame
-        digitalWrite(6, LOW);
     }
     else {
         return;

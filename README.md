@@ -9,15 +9,25 @@ see hoverboard-firmware-hack-FOC repo for used hoverboard-firmware
 ---
 ## ToDo:
 
+Mechanics:
+
+    - Order longer M12 Screw for front axle: (220mm and 260mm)
+    - Order longer 40mm extrusions for suspension (TBD)
+
+
 Hoverboards:
 
-    - firmware brake enable
+    - firmware brake enable?
+    - test modes
+    - implement mode switching? (https://github.com/EmanuelFeru/hoverboard-firmware-hack-FOC/issues/143)
+
 
 Arduino:
 
-    - nonce
+    - nonce auf dem UC checken if nonce gesehen > x mal -> use failsafe alias <0,0,0,0,0,0>
     - servo pwm output
     - safe speed mode
+    
 
 
 Raspberry:
@@ -25,12 +35,10 @@ Raspberry:
     Python:
         - Git
         - Autostart
+        - WS2812
 
     WWW:
-        - Speed/Steer tauschen
         - single-user-check einbauen (mit Rückmeldung)
-        - nonce einbauen, auf dem UC checken if nonce gesehen > x mal -> use failsafe alias <0,0,0,0,0,0>
-        - Servo value
         - Drive mode selector (tank/ackermann)
         - Wheel speed calculi
         - Telemetry (Speed, Battery, ...)
@@ -41,6 +49,7 @@ Raspberry:
         - speed adaptive steer angle
         - expo/rate
         - deadzone
+
 
     Network:
 
