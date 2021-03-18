@@ -11,8 +11,7 @@ see hoverboard-firmware-hack-FOC repo for used hoverboard-firmware
 
 Mechanical:
 
-    - Order longer M12 Screw for front axle: (220mm and 260mm)
-    - cut spacer tube to correct length (TBD) 
+    - cut spacer tube to correct length (TBD)
     - Order longer 40mm extrusions for suspension (TBD)
     - finish servo steering
     - Build upper deck
@@ -32,6 +31,7 @@ Electrical:
     - LiFePo batteries
     - Circuit diagram!
     - WS2812 strip (in extrusion slot?)
+    - charge contacts
 
 
 Hoverboards:
@@ -39,12 +39,13 @@ Hoverboards:
     - firmware brake enable?
     - test modes
     - implement mode switching? (https://github.com/EmanuelFeru/hoverboard-firmware-hack-FOC/issues/143)
-
+    - test field weakening 
 
 Arduino:
 
     - servo pwm output
-    - safe speed mode
+    - no servo movement in standstill
+    - safe speed mode (max. 1m/s)
 
 
 Raspberry:
@@ -66,6 +67,7 @@ Raspberry:
         - speed adaptive steer angle
         - expo/rate
         - deadzone
+        - edge fallback (data reduction) 
 
 
     Network:
