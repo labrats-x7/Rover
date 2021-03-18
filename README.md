@@ -16,18 +16,23 @@ Mechanical:
     - Order longer 40mm extrusions for suspension (TBD)
     - finish servo steering
     - Build upper deck
+    - model camera
+    - design camera/lidar mnount
     - cut floor and Plexiglass walls
-    - camera and lidar placement
+    - model hoverboard pcb
     - shorten the 4 outer screws on the front axle to correct the tire track with
+    - model RaspiCase
+
 
 Electrical:
     
     - Cables for front axle
-    - DC/DC converter 5V 12V... 
-    - terminal blocks for power distribution 
+    - DC/DC converter 5V 12V...
+    - terminal blocks for power distribution
     - LiFePo batteries
     - Circuit diagram!
-    - WS2812 strip (in extrusion slot?) 
+    - WS2812 strip (in extrusion slot?)
+
 
 Hoverboards:
 
@@ -40,7 +45,6 @@ Arduino:
 
     - servo pwm output
     - safe speed mode
-    
 
 
 Raspberry:
