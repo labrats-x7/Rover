@@ -12,10 +12,8 @@ see hoverboard-firmware-hack-FOC repo for used hoverboard-firmware
 Mechanical:
 
     - cut spacer tube to correct length (TBD)
-    - Order longer 40mm extrusions for suspension (TBD)
     - finish servo steering
     - Build upper deck
-    - model camera
     - design camera/lidar mnount
     - cut floor and Plexiglass walls
     - model hoverboard pcb
@@ -25,7 +23,7 @@ Mechanical:
 
 Electrical:
     
-    - Cables for front axle
+    - Cable extensions for front axle
     - DC/DC converter 5V 12V...
     - terminal blocks for power distribution
     - LiFePo batteries
@@ -43,7 +41,7 @@ Hoverboards:
 
 Arduino:
 
-    - servo pwm output
+    - servo pwm output -> from raspi?
     - no servo movement in standstill
     - safe speed mode (max. 1m/s)
 
