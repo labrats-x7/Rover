@@ -49,7 +49,6 @@ Arduino:
 Raspberry:
 
     Python:
-        - Autostart
         - WS2812
 
     WWW:
