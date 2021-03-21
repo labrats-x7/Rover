@@ -3,7 +3,12 @@
 # 
 # https://stackoverflow.com/questions/11892729/how-to-log-in-to-a-website-using-pythons-requests-module
 #
-#
+# have to inspect axis control site for login field values
+# latest output:
+# <HTML><HEAD><TITLE>400 Bad Request</TITLE></HEAD>
+# <BODY><H1>400 Bad Request</H1>
+# Your client has issued a malformed or illegal request.
+# </BODY></HTML>
 #
 # 
 # ######################################################################
@@ -15,13 +20,13 @@ i=0
 
 # Fill in your details here to be posted to the login form.
 payload = {
-    'inUserName': 'root',
-    'inUserPass': 'root'
+    'Nutzername': 'root',
+    'Passwort': 'root'
 }
 
 # Use 'with' to ensure the session context is closed after use.
 with requests.Session() as s:
-    p = s.post('http://192.168.0.90/view/viewer_index.shtml', data=payload)
+    p = s.post('http://192.168.0.90/', data=payload)
     # print the html returned or something more intelligent to see if it's a successful login page.
     print(p.text)
 
@@ -30,7 +35,7 @@ with requests.Session() as s:
         i = i+1
         if i > 20:
             i=0
-            s.get('192.168.0.90/axis-cgi/com/ptz.cgi?camera=1&move=right')
+            s.get('http://192.168.0.90/axis-cgi/com/ptz.cgi?camera=1&move=right')
         if i == 10:
-            s.get('192.168.0.90/axis-cgi/com/ptz.cgi?camera=1&move=left')
+            s.get('http://192.168.0.90/axis-cgi/com/ptz.cgi?camera=1&move=left')
         time.sleep(1)
