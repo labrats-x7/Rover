@@ -1,0 +1,32 @@
+digraph BOT {
+    label="Data Connenctions"
+    graph[class="RC"];
+    ranksep="0.3"
+    subgraph cluster_RC{
+        node [style=filled,color=orange]
+        label="Remote Control"
+        PS4Controller -> "Mobile / Laptop" [label = "Bluetooth"]
+    }
+    node [style = filled, color=lightblue]
+    "Mobile / Laptop" -> "Internet (VPN)" [label = "LTE"] [dir = both]
+    "Internet (VPN)"-> "LTE Modem" [label = "LTE"] [dir = both]
+    subgraph cluster_Bot{
+        
+        graph[class="Bot"];
+        node [style=filled,color=green]
+        label="Bot"
+        Camera -> Webserver [label = "Ethernet"][dir = both]
+        Arduino -> HoverboardFront [label = "USART"] [dir = both]
+        Arduino -> HoverboardBack [label = "USART"] [dir = both]
+        Arduino -> SteerServo [label = "PWM"]  
+        "Python??" -> Arduino [label = "UART"] [dir = both]
+        "LTE Modem" -> Webserver [label = "WiFi/Ethernet/USB"] [dir = both]
+        "LTE Modem" -> "Python??" [label = "WiFi/Ethernet/USB"] [dir = both]
+        subgraph cluster_Pi{
+            graph[class="Pi"];
+            node [style=filled,color=green]
+            label="Raspberry Pi"
+            Webserver -> "Python??" [dir = both]
+        }    
+    }
+ }
