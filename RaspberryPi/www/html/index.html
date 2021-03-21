@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Joy</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+  </head>
+<body>
+    <c-throttle></c-throttle>
+    <c-v-throttle></c-v-throttle>
+    <c-v-steer></c-v-steer>
+    <c-debug>Debug Here</c-debug>
+</body>
+</html>
+<style>
+    c-debug{
+        position: absolute;
+        display: block;
+        top: calc(0.5cm);
+        left: calc(0.5cm);
+    }
+    c-throttle{
+        position: absolute;
+        display: block;
+        width: 1cm;
+        height: 1cm;
+        top: calc(50% - 0.5cm);
+        left: calc(50% - 0.5cm);
+        background-color: red;
+    }
+    c-v-throttle{
+        position: absolute;
+        display: block;
+        width: 1cm;
+        height: 1cm;
+        top: calc(50% - 0.5cm);
+        left: calc(50% - 0.5cm);
+        background-color: red;
+        pointer-events: none;
+        transition: all 0.25s ease;
+    }
+    c-v-steer{
+        position: absolute;
+        display: block;
+        width: 1cm;
+        height: 1cm;
+        top: calc(50% - 0.5cm);
+        left: calc(50% - 0.5cm);
+        background-color: red;
+        pointer-events: none;
+        transition: all 0.25s ease;
+    }
+</style>
+<script type="text/javascript">
+throttle_element = document.getElementsByTagName("c-throttle")[0];
+throttlev_element = document.getElementsByTagName("c-v-throttle")[0];
+steerv_element = document.getElementsByTagName("c-v-steer")[0];
+debug_element = document.getElementsByTagName("c-debug")[0];
+touch = false;
+tracking = false;
+
+throttle = 0;
+steer = 0;
+
+
+throttle_element.addEventListener('touchend', function() {
+  event.preventDefault();
+  for(var i = 0; i < touches.length; i++){
+    var t = touches[i];
+    if(touch.identifier == t.identifier){
+        tracking = false;
+    }
+  }
+});
+
+throttle_element.addEventListener('touchmove', function(event) {
+  if(!tracking) return;
+  event.preventDefault();
+  touches = event.touches;
+  for(var i = 0; i < touches.length; i++){
+    var t = touches[i];
+    if(touch.identifier == t.identifier){
+        steer = (t.screenX-touch.screenX)/window.innerWidth*200;
+        throttle = (t.screenY-touch.screenY)/window.innerHeight*-200;
+    }
+  }
+});
+
+throttle_element.addEventListener('touchstart', function(event) {
+  event.preventDefault();
+  tracking = true;
+  touch = event["targetTouches"][0];
+  console.log('start',);
+});
+
+window.addEventListener("contextmenu", function(e) { e.preventDefault(); })
+nonce = 0;
+function update(){
+    nonce+=1;
+    if(nonce > 1023){
+        nonce = 1;
+    }
+    throttle = Math.floor(throttle);
+    steer = Math.floor(steer);
+    debug_element.innerText = "Steer: "+steer+"%, Throttle: "+throttle+"%, tracking: "+tracking;
+    if(throttle > 0){
+        throttlev_element.style.height = "calc("+throttle/2+"% + 1cm)";
+        throttlev_element.style.top = "calc(50% - "+throttle/2+"% - 0.5cm)";
+    }else{
+        throttlev_element.style.height = "calc("+-throttle/2+"% + 1cm)";
+        throttlev_element.style.top = "calc(50% - 0.5cm)";
+    }
+    
+    if(steer > 0){
+        steerv_element.style.width = "calc("+steer/2+"% + 1cm)";
+        steerv_element.style.left = "calc(50% - 0.5cm)";
+    }else{
+        steerv_element.style.width = "calc("+-steer/2+"% + 1cm)";
+        steerv_element.style.left = "calc("+steer/2+"% + 50% - 0.5cm)";
+    }
+    
+    send = "<"+steer*10+","+throttle*10+","+steer*10+","+throttle*10+","+0+","+nonce+">";
+    fetch('set.php?v='+encodeURIComponent(send));
+    //send
+    
+    if(!tracking){
+        throttle *= 0.5;
+        steer *= 0.5;
+    }
+}
+setInterval(update,100);
+</script>
