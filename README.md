@@ -11,14 +11,12 @@ see hoverboard-firmware-hack-FOC repo for used hoverboard-firmware
 
 Mechanical:
 
-    - cut spacer tube to correct length (TBD)
     - finish servo steering
     - Build upper deck
     - design camera/lidar mnount
-    - cut floor and Plexiglass walls
-    - model hoverboard pcb
+    - cut Plexiglass walls
     - shorten the 4 outer screws on the front axle to correct the tire track with
-    - model RaspiCase
+    - model charge contacts
 
 
 Electrical:
@@ -30,6 +28,7 @@ Electrical:
     - Circuit diagram!
     - WS2812 strip (in extrusion slot?)
     - charge contacts
+    - schottky diodes
 
 
 Hoverboards:
