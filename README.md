@@ -7,6 +7,7 @@ index.html for mobile website for inputs
 
 see hoverboard-firmware-hack-FOC repo for used hoverboard-firmware
 
+![Frame](/docs/pictures/IMG_20210326_150605.jpg) 
 
 ---
 ## ToDo:
