@@ -3,6 +3,8 @@ Arduino Mega code for communicating with 2 hoverboards from a raspberry pi in /A
 
 Python code for Communicating between Arduino Mega and Raspberry Pi in /RaspberryPi/Python
 
+index.html for mobile website for inputs
+
 see hoverboard-firmware-hack-FOC repo for used hoverboard-firmware
 
 
@@ -11,7 +13,6 @@ see hoverboard-firmware-hack-FOC repo for used hoverboard-firmware
 
 Mechanical:
 
-    - finish servo steering
     - Build upper deck
     - design camera/lidar mnount
     - cut Plexiglass walls
