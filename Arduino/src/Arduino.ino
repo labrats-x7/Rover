@@ -377,7 +377,7 @@ void ReceiveRear(){
 
 void SendServo(int16_t STEER_SERVO) {
     int ANGLE = 0;
-    ANGLE = map(STEER_SERVO, -1000, 1000, 45, 135);
+    ANGLE = map(STEER_SERVO, -1000, 1000, 40, 140);
     s1.write(ANGLE);
 }
 
