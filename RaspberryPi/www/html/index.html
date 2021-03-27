@@ -118,7 +118,7 @@ function update(){
         steerv_element.style.left = "calc("+steer/2+"% + 50% - 0.5cm)";
     }
     
-    send = "<"+steer*10+","+throttle*10+","+steer*10+","+throttle*10+","+0+","+nonce+">";
+    send = "<"+throttle*10+","+throttle*10+","+throttle*10+","+throttle*10+","+steer+","+nonce+">";
     fetch('set.php?v='+encodeURIComponent(send));
     //send
     

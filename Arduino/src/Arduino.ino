@@ -23,6 +23,7 @@
 // *******************************************************************
 
 #include <Arduino.h>
+#include <Servo.h>
 
 // ########################## DEFINES ##########################
 #define HOVER_SERIAL_BAUD   115200      // [-] Baud rate for HoverSerial (used to communicate with the hoverboard)
@@ -45,6 +46,8 @@ int16_t NONCE_COUNT = 0;
 int16_t NONCE_TIMEOUT = 0;
 bool web_connected = false;
 bool pi_connected = false;
+
+Servo s1;
 
 typedef struct{
    uint16_t start;
@@ -79,6 +82,7 @@ void setup()
     Serial1.begin(HOVER_SERIAL_BAUD);
     Serial2.begin(HOVER_SERIAL_BAUD);
     pinMode(LED_BUILTIN, OUTPUT);
+    s1.attach(9);
 }
 
 // ########################## LOOP ##########################
@@ -132,8 +136,8 @@ void loop(void) {
 
     SendFront(SPEED_FL, SPEED_FR);
     SendRear(SPEED_RL, SPEED_RR);
-
-}
+    SendServo(STEER_SERVO);
+    }
 
 // ########################## RECEIVE from Pi ##########################
 
@@ -367,6 +371,14 @@ void ReceiveRear(){
 
     // Update previous states
     incomingBytePrev = incomingByte;
+}
+
+// ########################## Steer the Servo ##########################
+
+void SendServo(int16_t STEER_SERVO) {
+    int ANGLE = 0;
+    ANGLE = map(STEER_SERVO, -1000, 1000, 45, 135);
+    s1.write(ANGLE);
 }
 
 // ########################## END ##########################
