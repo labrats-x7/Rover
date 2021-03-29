@@ -15,7 +15,7 @@ see hoverboard-firmware-hack-FOC repo for used hoverboard-firmware
 Mechanical:
 
     - Build upper deck
-    - design camera/lidar mnount
+    - design camera & lidar mount
     - cut Plexiglass walls
     - shorten the 4 outer screws on the front axle to correct the tire track with
     - model charge contacts
@@ -24,25 +24,19 @@ Mechanical:
 Electrical:
     
     - Cable extensions for front axle
-    - DC/DC converter 5V 12V...
-    - terminal blocks for power distribution
-    - LiFePo batteries
+    - DC/DC converter 5V 12v 24V?
     - Circuit diagram!
     - WS2812 strip (in extrusion slot?)
     - charge contacts
-    - schottky diodes
 
 
 Hoverboards:
 
-    - firmware brake enable?
     - test modes
     - implement mode switching? (https://github.com/EmanuelFeru/hoverboard-firmware-hack-FOC/issues/143)
-    - test field weakening 
 
 Arduino:
 
-    - servo pwm output -> from raspi?
     - no servo movement in standstill
     - safe speed mode (max. 1m/s)
 
